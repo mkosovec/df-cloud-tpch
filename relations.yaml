@@ -1,0 +1,112 @@
+---
+- name: "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+  expression: "[Related].n_nationkey = [This].c_nationkey"
+  cardinality: "M-1"
+  expression_parsed: "P<2> = P<1>"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "c_nationkey"
+    source_name: "Samples - tpch.customer"
+  - id: 2
+    type: "raw"
+    name: "n_nationkey"
+    source_name: "Samples - tpch.nation"
+- name: "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+  expression: "[This].l_orderkey = [Related].o_orderkey"
+  cardinality: "M-1"
+  expression_parsed: "P<1> = P<2>"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "l_orderkey"
+    source_name: "Samples - tpch.lineitem"
+  - id: 2
+    type: "raw"
+    name: "o_orderkey"
+    source_name: "Samples - tpch.orders"
+- name: "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+  expression: "[This].partsupp_pkey = [Related].s_key"
+  cardinality: "M-1"
+  expression_parsed: "P<1> = P<2>"
+  parameters:
+  - id: 1
+    type: "enrichment"
+    name: "partsupp_pkey"
+    source_name: "Samples - tpch.lineitem"
+  - id: 2
+    type: "system"
+    name: "s_key"
+    source_name: "Samples - tpch.partsupp"
+- name: "[Samples - tpch.nation]-nationkey-[Inference - Nation Forecast]"
+  description: "nation to nation inference"
+  expression: "[This].n_nationkey = [Related].nation_key"
+  cardinality: "1-1"
+  expression_parsed: "[This].n_nationkey = [Related].nation_key"
+  active_flag: false
+- name: "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  primary_flag: false
+  expression: "[This].n_nationkey = [Related].s_nationkey"
+  cardinality: "1-M"
+  expression_parsed: "P<1> = P<2>"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "n_nationkey"
+    source_name: "Samples - tpch.nation"
+  - id: 2
+    type: "raw"
+    name: "s_nationkey"
+    source_name: "Samples - tpch.supplier"
+- name: "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  expression: "[This].n_regionkey = [Related].r_regionkey"
+  cardinality: "M-1"
+  expression_parsed: "P<1> = P<2>"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "n_regionkey"
+    source_name: "Samples - tpch.nation"
+  - id: 2
+    type: "raw"
+    name: "r_regionkey"
+    source_name: "Samples - tpch.region"
+- name: "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  expression: "[This].o_custkey = [Related].c_custkey"
+  cardinality: "M-1"
+  expression_parsed: "P<1> = P<2>"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "o_custkey"
+    source_name: "Samples - tpch.orders"
+  - id: 2
+    type: "raw"
+    name: "c_custkey"
+    source_name: "Samples - tpch.customer"
+- name: "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  expression: "[This].ps_partkey = [Related].p_partkey"
+  cardinality: "M-1"
+  expression_parsed: "P<1> = P<2>"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "ps_partkey"
+    source_name: "Samples - tpch.partsupp"
+  - id: 2
+    type: "raw"
+    name: "p_partkey"
+    source_name: "Samples - tpch.part"
+- name: "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  expression: "[This].s_suppkey = [Related].ps_suppkey"
+  cardinality: "1-M"
+  expression_parsed: "P<1> = P<2>"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "s_suppkey"
+    source_name: "Samples - tpch.supplier"
+  - id: 2
+    type: "raw"
+    name: "ps_suppkey"
+    source_name: "Samples - tpch.partsupp"

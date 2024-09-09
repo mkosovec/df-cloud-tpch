@@ -1,0 +1,22 @@
+---
+output_name: "ML Inference - Nation Revenue Forecast"
+output_type: "virtual"
+output_package_parameters:
+  view_name: "nation_forecast_in"
+  table_schema: "demo"
+  custom_parameters:
+    modelName: "TPCH Revenue Forecast by Nation"
+    destinationSourceName: "Inference - Nation Forecast"
+  reset_channels_on_delta_overwrite: true
+output_description: "Used by ML model to infer future revenue"
+post_output_type: "custom"
+custom_post_output_cluster_configuration_name: "Custom Notebook - Batch Inference"
+columns:
+- name: "Line_item_receipt_date"
+  datatype: "date"
+  datatype_schema: "date"
+  complex_flag: false
+- name: "nation_key"
+  datatype: "long"
+  datatype_schema: "long"
+  complex_flag: false

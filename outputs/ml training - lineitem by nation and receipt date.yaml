@@ -1,0 +1,26 @@
+---
+output_name: "ML Training - LineItem by Nation and Receipt Date"
+output_package_parameters:
+  table_name: "$v5"
+  table_schema: "ml_training"
+  custom_parameters:
+    description: "Aggregate by nation and receipt date for model training"
+    primaryKeys: "nation_key,Line_item_receipt_date"
+output_description: "For AutoML Training"
+output_sub_type: "delta_lake"
+connection_name: "Delta Lake ML Training Output"
+post_output_type: "custom"
+custom_post_output_cluster_configuration_name: "Custom Notebook - Feature Registration"
+columns:
+- name: "line_item_net_price_100"
+  datatype: "integer"
+  datatype_schema: "integer"
+  complex_flag: false
+- name: "nation_key"
+  datatype: "long"
+  datatype_schema: "long"
+  complex_flag: false
+- name: "Line_item_receipt_date"
+  datatype: "date"
+  datatype_schema: "date"
+  complex_flag: false

@@ -1,0 +1,201 @@
+---
+source_name: "Samples - tpch.partsupp"
+source_description: "Auto-created from connection metadata"
+ingestion_parameters:
+  source_query: "select * from tpch.partsupp"
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "ps_partkey"
+  - "ps_suppkey"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_name: "Databricks Unity Samples"
+schedule_name: "Default"
+hub_view_name: "tpch_partsupp"
+process_configuration_name: "Databricks JDBC"
+raw_attributes:
+- raw_attribute_name: "ps_availqty"
+  data_type: "int"
+- raw_attribute_name: "ps_comment"
+  data_type: "string"
+- raw_attribute_name: "ps_partkey"
+  data_type: "long"
+- raw_attribute_name: "ps_suppkey"
+  data_type: "long"
+- raw_attribute_name: "ps_supplycost"
+  data_type: "decimal"
+dependencies:
+- source_name: "Samples - tpch.lineitem"
+- source_name: "Samples - tpch.part"
+- source_name: "Samples - tpch.supplier"
+channels:
+- output_name: "Reporting - TPCH OBT"
+  output_source_name: "Auto-ML Demo - tpch.partsupp"
+  output_source_columns:
+  - name: "part"
+    expression: "[Samples - tpch.part].p_name"
+    parameter:
+      name: "p_name"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_brand"
+    expression: "[Samples - tpch.part].p_brand"
+    parameter:
+      name: "p_brand"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_comment"
+    expression: "[Samples - tpch.part].p_comment"
+    parameter:
+      name: "p_comment"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_container"
+    expression: "[Samples - tpch.part].p_container"
+    parameter:
+      name: "p_container"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_key"
+    expression: "[This].ps_partkey"
+    parameter:
+      name: "ps_partkey"
+      type: "raw"
+  - name: "part_manufacturer"
+    expression: "[Samples - tpch.part].p_mfgr"
+    parameter:
+      name: "p_mfgr"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_supplier_available_quantity"
+    expression: "[This].ps_availqty"
+    parameter:
+      name: "ps_availqty"
+      type: "raw"
+  - name: "part_supplier_comment"
+    expression: "[This].ps_comment"
+    parameter:
+      name: "ps_comment"
+      type: "raw"
+  - name: "part_supplier_supply_cost"
+    expression: "[This].ps_supplycost"
+    parameter:
+      name: "ps_supplycost"
+      type: "raw"
+  - name: "part_type"
+    expression: "[Samples - tpch.part].p_type"
+    parameter:
+      name: "p_type"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "supplier"
+    expression: "[Samples - tpch.supplier].s_name"
+    parameter:
+      name: "s_name"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_address"
+    expression: "[Samples - tpch.supplier].s_address"
+    parameter:
+      name: "s_address"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_comment"
+    expression: "[Samples - tpch.supplier].s_comment"
+    parameter:
+      name: "s_comment"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_key"
+    expression: "[Samples - tpch.supplier].s_suppkey"
+    parameter:
+      name: "s_suppkey"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_nation"
+    expression: "[Samples - tpch.nation].n_name"
+    parameter:
+      name: "n_name"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_nation_comment"
+    expression: "[Samples - tpch.nation].n_comment"
+    parameter:
+      name: "n_comment"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_nation_key"
+    expression: "[Samples - tpch.nation].n_nationkey"
+    parameter:
+      name: "n_nationkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_phone"
+    expression: "[Samples - tpch.supplier].s_phone"
+    parameter:
+      name: "s_phone"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_region"
+    expression: "[Samples - tpch.region].r_name"
+    parameter:
+      name: "r_name"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "supplier_region_comment"
+    expression: "[Samples - tpch.region].r_comment"
+    parameter:
+      name: "r_comment"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "supplier_region_key"
+    expression: "[Samples - tpch.nation].n_regionkey"
+    parameter:
+      name: "n_regionkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"

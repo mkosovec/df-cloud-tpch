@@ -1,0 +1,622 @@
+---
+source_name: "Samples - tpch.lineitem"
+source_description: "Auto-created from connection metadata"
+ingestion_parameters:
+  source_query: "select * from tpch.lineitem"
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "l_orderkey"
+  - "l_linenumber"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_name: "Databricks Unity Samples"
+schedule_name: "Default"
+hub_view_name: "tpch_lineitem"
+process_configuration_name: "Databricks JDBC"
+raw_attributes:
+- raw_attribute_name: "l_comment"
+  data_type: "string"
+- raw_attribute_name: "l_commitdate"
+  data_type: "date"
+- raw_attribute_name: "l_discount"
+  data_type: "decimal"
+- raw_attribute_name: "l_extendedprice"
+  data_type: "decimal"
+- raw_attribute_name: "l_linenumber"
+  data_type: "int"
+- raw_attribute_name: "l_linestatus"
+  data_type: "string"
+- raw_attribute_name: "l_orderkey"
+  data_type: "long"
+- raw_attribute_name: "l_partkey"
+  data_type: "long"
+- raw_attribute_name: "l_quantity"
+  data_type: "decimal"
+- raw_attribute_name: "l_receiptdate"
+  data_type: "date"
+- raw_attribute_name: "l_returnflag"
+  data_type: "string"
+- raw_attribute_name: "l_shipdate"
+  data_type: "date"
+- raw_attribute_name: "l_shipinstruct"
+  data_type: "string"
+- raw_attribute_name: "l_shipmode"
+  data_type: "string"
+- raw_attribute_name: "l_suppkey"
+  data_type: "long"
+- raw_attribute_name: "l_tax"
+  data_type: "decimal"
+dependencies:
+- source_name: "Samples - tpch.orders"
+- source_name: "Samples - tpch.partsupp"
+rules:
+- attribute_name: "max_receipt_date_by_nation"
+  name: "max receipt date by nation"
+  datatype: "date"
+  expression: "MAX([This].l_receiptdate) OVER (PARTITION BY [Samples - tpch.nation].n_nationkey)"
+  expression_parsed: "MAX(P<1>) OVER (PARTITION BY P<2>)"
+  keep_current_flag: true
+  window_function_flag: true
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "l_receiptdate"
+  - id: 2
+    type: "raw"
+    name: "n_nationkey"
+    source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+- attribute_name: "max_receipt_date_by_nation_plus_30"
+  name: "max receipt date by nation plus 30"
+  datatype: "date"
+  expression: "date_add([This].max_receipt_date_by_nation,30)"
+  expression_parsed: "date_add(P<1>,30)"
+  parameters:
+  - id: 1
+    type: "enrichment"
+    name: "max_receipt_date_by_nation"
+- attribute_name: "net_price_int"
+  name: "Net Price Int"
+  datatype: "int"
+  cast_datatype: "int"
+  expression: "[This].revenue*100"
+  expression_parsed: "P<1>*100"
+  parameters:
+  - id: 1
+    type: "enrichment"
+    name: "revenue"
+- attribute_name: "net_price_no_returns"
+  name: "net_price_no_returns"
+  datatype: "int"
+  expression: "CASE WHEN [This].l_returnflag IS TRUE\n   THEN [This].net_price_int\n\
+    \   ELSE 0\nEND"
+  expression_parsed: "CASE WHEN P<1> IS TRUE\n   THEN P<2>\n   ELSE 0\nEND"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "l_returnflag"
+  - id: 2
+    type: "enrichment"
+    name: "net_price_int"
+- attribute_name: "partsupp_pkey"
+  name: "partsupp_pkey"
+  datatype: "string"
+  expression: "CONCAT([This].l_partkey,'|',[This].l_suppkey)"
+  expression_parsed: "CONCAT(P<2>,'|',P<1>)"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "l_suppkey"
+  - id: 2
+    type: "raw"
+    name: "l_partkey"
+- attribute_name: "receipt_date_year_month"
+  name: "receipt_date_year_month"
+  datatype: "string"
+  expression: "date_format([This].l_receiptdate, \"yyyyMM\")"
+  expression_parsed: "date_format(P<1>, \"yyyyMM\")"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "l_receiptdate"
+- attribute_name: "revenue"
+  name: "revenue"
+  datatype: "decimal"
+  expression: "[This].l_extendedprice - [This].l_tax - [This].l_discount"
+  expression_parsed: "P<1> - P<2> - P<3>"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "l_extendedprice"
+  - id: 2
+    type: "raw"
+    name: "l_tax"
+  - id: 3
+    type: "raw"
+    name: "l_discount"
+- attribute_name: "revenue_no_returns"
+  name: "revenue no returns"
+  datatype: "decimal"
+  expression: "CASE WHEN [This].l_returnflag IS TRUE\nTHEN [This].revenue\nELSE 0\n\
+    END"
+  expression_parsed: "CASE WHEN P<1> IS TRUE\nTHEN P<2>\nELSE 0\nEND"
+  parameters:
+  - id: 1
+    type: "raw"
+    name: "l_returnflag"
+  - id: 2
+    type: "enrichment"
+    name: "revenue"
+channels:
+- output_name: "ML Inference - Nation Revenue Forecast"
+  operation_type: "Aggregate"
+  output_source_columns:
+  - name: "Line_item_receipt_date"
+    expression: "[This].max_receipt_date_by_nation_plus_30"
+    datatype: "date"
+    parameter:
+      name: "max_receipt_date_by_nation_plus_30"
+      type: "enrichment"
+  - name: "nation_key"
+    expression: "[Samples - tpch.nation].n_nationkey"
+    datatype: "long"
+    parameter:
+      name: "n_nationkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+- output_name: "ML Training - LineItem by Nation and Receipt Date"
+  output_source_name: "Auto-ML Demo - tpch.lineitem"
+  filter: "[This].l_receiptdate BETWEEN '1993-01-01' AND '1998-12-31'"
+  operation_type: "Aggregate"
+  output_source_columns:
+  - name: "line_item_net_price_100"
+    expression: "[This].net_price_int"
+    datatype: "int"
+    parameter:
+      name: "net_price_int"
+      type: "enrichment"
+    aggregate: "sum"
+  - name: "Line_item_receipt_date"
+    expression: "[This].l_receiptdate"
+    parameter:
+      name: "l_receiptdate"
+      type: "raw"
+  - name: "nation_key"
+    expression: "[Samples - tpch.nation].n_nationkey"
+    parameter:
+      name: "n_nationkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+- output_name: "Reporting - TPCH OBT"
+  output_source_name: "tpch.lineitem"
+  filter: ""
+  description: "Testing 123"
+  output_source_columns:
+  - name: "customer"
+    expression: "[Samples - tpch.customer].c_name"
+    parameter:
+      name: "c_name"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_address"
+    expression: "[Samples - tpch.customer].c_address"
+    parameter:
+      name: "c_address"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_comment"
+    expression: "[Samples - tpch.customer].c_comment"
+    parameter:
+      name: "c_comment"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_key"
+    expression: "[Samples - tpch.customer].c_custkey"
+    parameter:
+      name: "c_custkey"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_market_segment"
+    expression: "[Samples - tpch.customer].c_mktsegment"
+    parameter:
+      name: "c_mktsegment"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_nation"
+    expression: "[Samples - tpch.nation].n_name"
+    parameter:
+      name: "n_name"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+  - name: "customer_nation_comment"
+    expression: "[Samples - tpch.nation].n_comment"
+    parameter:
+      name: "n_comment"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+  - name: "customer_nation_key"
+    expression: "[Samples - tpch.nation].n_nationkey"
+    parameter:
+      name: "n_nationkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+  - name: "customer_phone"
+    expression: "[Samples - tpch.customer].c_phone"
+    parameter:
+      name: "c_phone"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_region"
+    expression: "[Samples - tpch.region].r_name"
+    parameter:
+      name: "r_name"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "customer_region_comment"
+    expression: "[Samples - tpch.region].r_comment"
+    parameter:
+      name: "r_comment"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "customer_region_key"
+    expression: "[Samples - tpch.region].r_regionkey"
+    parameter:
+      name: "r_regionkey"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "line_item_comment"
+    expression: "[This].l_comment"
+    parameter:
+      name: "l_comment"
+      type: "raw"
+  - name: "line_item_commit_date"
+    expression: "[This].l_commitdate"
+    parameter:
+      name: "l_commitdate"
+      type: "raw"
+  - name: "line_item_discount"
+    expression: "[This].l_discount"
+    parameter:
+      name: "l_discount"
+      type: "raw"
+  - name: "line_item_extended_price"
+    expression: "[This].l_extendedprice"
+    parameter:
+      name: "l_extendedprice"
+      type: "raw"
+  - name: "line_item_line_number"
+    expression: "[This].l_linenumber"
+    parameter:
+      name: "l_linenumber"
+      type: "raw"
+  - name: "line_item_line_status"
+    expression: "[This].l_linestatus"
+    parameter:
+      name: "l_linestatus"
+      type: "raw"
+  - name: "line_item_quantity"
+    expression: "[This].l_quantity"
+    parameter:
+      name: "l_quantity"
+      type: "raw"
+  - name: "line_item_receipt_date"
+    expression: "[This].l_receiptdate"
+    parameter:
+      name: "l_receiptdate"
+      type: "raw"
+  - name: "line_item_return_flag"
+    expression: "[This].l_returnflag"
+    parameter:
+      name: "l_returnflag"
+      type: "raw"
+  - name: "line_item_ship_date"
+    expression: "[This].l_shipdate"
+    parameter:
+      name: "l_shipdate"
+      type: "raw"
+  - name: "line_item_ship_instruct"
+    expression: "[This].l_shipinstruct"
+    parameter:
+      name: "l_shipinstruct"
+      type: "raw"
+  - name: "line_item_ship_mode"
+    expression: "[This].l_shipmode"
+    parameter:
+      name: "l_shipmode"
+      type: "raw"
+  - name: "line_item_tax"
+    expression: "[This].l_tax"
+    parameter:
+      name: "l_tax"
+      type: "raw"
+  - name: "order_clerk"
+    expression: "[Samples - tpch.orders].o_clerk"
+    parameter:
+      name: "o_clerk"
+      type: "raw"
+      source_name: "Samples - tpch.orders"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+  - name: "order_comment"
+    expression: "[Samples - tpch.orders].o_comment"
+    parameter:
+      name: "o_comment"
+      type: "raw"
+      source_name: "Samples - tpch.orders"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+  - name: "order_date"
+    expression: "[Samples - tpch.orders].o_orderdate"
+    parameter:
+      name: "o_orderdate"
+      type: "raw"
+      source_name: "Samples - tpch.orders"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+  - name: "order_key"
+    expression: "[This].l_orderkey"
+    parameter:
+      name: "l_orderkey"
+      type: "raw"
+  - name: "order_priority"
+    expression: "[Samples - tpch.orders].o_orderpriority"
+    parameter:
+      name: "o_orderpriority"
+      type: "raw"
+      source_name: "Samples - tpch.orders"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+  - name: "order_ship_priority"
+    expression: "[Samples - tpch.orders].o_shippriority"
+    parameter:
+      name: "o_shippriority"
+      type: "raw"
+      source_name: "Samples - tpch.orders"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+  - name: "order_status"
+    expression: "[Samples - tpch.orders].o_orderstatus"
+    parameter:
+      name: "o_orderstatus"
+      type: "raw"
+      source_name: "Samples - tpch.orders"
+    relations:
+    - "[Samples - tpch.lineitem]-orderkey-[Samples - tpch.orders]"
+  - name: "part"
+    expression: "[Samples - tpch.part].p_name"
+    parameter:
+      name: "p_name"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_brand"
+    expression: "[Samples - tpch.part].p_brand"
+    parameter:
+      name: "p_brand"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_comment"
+    expression: "[Samples - tpch.part].p_comment"
+    parameter:
+      name: "p_comment"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_container"
+    expression: "[Samples - tpch.part].p_container"
+    parameter:
+      name: "p_container"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_key"
+    expression: "[This].l_partkey"
+    parameter:
+      name: "l_partkey"
+      type: "raw"
+  - name: "part_manufacturer"
+    expression: "[Samples - tpch.part].p_mfgr"
+    parameter:
+      name: "p_mfgr"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "part_supplier_comment"
+    expression: "[Samples - tpch.partsupp].ps_comment"
+    parameter:
+      name: "ps_comment"
+      type: "raw"
+      source_name: "Samples - tpch.partsupp"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+  - name: "part_type"
+    expression: "[Samples - tpch.part].p_type"
+    parameter:
+      name: "p_type"
+      type: "raw"
+      source_name: "Samples - tpch.part"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.partsupp]-partkey-[Samples - tpch.part]"
+  - name: "revenue"
+    expression: "[This].revenue"
+    parameter:
+      name: "revenue"
+      type: "enrichment"
+  - name: "supplier"
+    expression: "[Samples - tpch.supplier].s_name"
+    parameter:
+      name: "s_name"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_address"
+    expression: "[Samples - tpch.supplier].s_address"
+    parameter:
+      name: "s_address"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_comment"
+    expression: "[Samples - tpch.supplier].s_comment"
+    parameter:
+      name: "s_comment"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_key"
+    expression: "[Samples - tpch.supplier].s_suppkey"
+    parameter:
+      name: "s_suppkey"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_nation"
+    expression: "[Samples - tpch.nation].n_name"
+    parameter:
+      name: "n_name"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_nation_comment"
+    expression: "[Samples - tpch.nation].n_comment"
+    parameter:
+      name: "n_comment"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_nation_key"
+    expression: "[Samples - tpch.nation].n_nationkey"
+    parameter:
+      name: "n_nationkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_phone"
+    expression: "[Samples - tpch.supplier].s_phone"
+    parameter:
+      name: "s_phone"
+      type: "raw"
+      source_name: "Samples - tpch.supplier"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+  - name: "supplier_region"
+    expression: "[Samples - tpch.region].r_name"
+    parameter:
+      name: "r_name"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "supplier_region_comment"
+    expression: "[Samples - tpch.region].r_comment"
+    parameter:
+      name: "r_comment"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "supplier_region_key"
+    expression: "[Samples - tpch.nation].n_regionkey"
+    parameter:
+      name: "n_regionkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.lineitem]-partsupp_pkey=s_key-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.supplier]-suppkey-[Samples - tpch.partsupp]"
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"

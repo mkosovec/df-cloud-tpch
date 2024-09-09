@@ -1,0 +1,88 @@
+---
+source_name: "Samples - tpch.part"
+source_description: "Auto-created from connection metadata"
+ingestion_parameters:
+  source_query: "select * from tpch.part"
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "p_partkey"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_name: "Databricks Unity Samples"
+schedule_name: "Default"
+hub_view_name: "tpch_part"
+process_configuration_name: "Databricks JDBC"
+raw_attributes:
+- raw_attribute_name: "p_brand"
+  data_type: "string"
+- raw_attribute_name: "p_comment"
+  data_type: "string"
+- raw_attribute_name: "p_container"
+  data_type: "string"
+- raw_attribute_name: "p_mfgr"
+  data_type: "string"
+- raw_attribute_name: "p_name"
+  data_type: "string"
+- raw_attribute_name: "p_partkey"
+  data_type: "long"
+  unique_flag: true
+- raw_attribute_name: "p_retailprice"
+  data_type: "decimal"
+- raw_attribute_name: "p_size"
+  data_type: "int"
+- raw_attribute_name: "p_type"
+  data_type: "string"
+dependencies:
+- source_name: "Samples - tpch.partsupp"
+channels:
+- output_name: "Reporting - TPCH OBT"
+  output_source_name: "Auto-ML Demo - tpch.part"
+  output_source_columns:
+  - name: "part"
+    expression: "[This].p_name"
+    parameter:
+      name: "p_name"
+      type: "raw"
+  - name: "part_brand"
+    expression: "[This].p_brand"
+    parameter:
+      name: "p_brand"
+      type: "raw"
+  - name: "part_comment"
+    expression: "[This].p_comment"
+    parameter:
+      name: "p_comment"
+      type: "raw"
+  - name: "part_container"
+    expression: "[This].p_container"
+    parameter:
+      name: "p_container"
+      type: "raw"
+  - name: "part_key"
+    expression: "[This].p_partkey"
+    parameter:
+      name: "p_partkey"
+      type: "raw"
+  - name: "part_manufacturer"
+    expression: "[This].p_mfgr"
+    parameter:
+      name: "p_mfgr"
+      type: "raw"
+  - name: "part_retail_price"
+    expression: "[This].p_retailprice"
+    parameter:
+      name: "p_retailprice"
+      type: "raw"
+  - name: "part_size"
+    expression: "[This].p_size"
+    parameter:
+      name: "p_size"
+      type: "raw"
+  - name: "part_type"
+    expression: "[This].p_type"
+    parameter:
+      name: "p_type"
+      type: "raw"

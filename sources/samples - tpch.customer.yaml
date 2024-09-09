@@ -1,0 +1,129 @@
+---
+source_name: "Samples - tpch.customer"
+source_description: "Auto-created from connection metadata"
+ingestion_parameters:
+  source_query: "select * from tpch.customer"
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "c_custkey"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_name: "Databricks Unity Samples"
+schedule_name: "Default"
+hub_view_name: "tpch_customer"
+process_configuration_name: "Databricks JDBC"
+raw_attributes:
+- raw_attribute_name: "c_acctbal"
+  data_type: "decimal"
+- raw_attribute_name: "c_address"
+  data_type: "string"
+- raw_attribute_name: "c_comment"
+  data_type: "string"
+- raw_attribute_name: "c_custkey"
+  data_type: "long"
+  unique_flag: true
+- raw_attribute_name: "c_mktsegment"
+  data_type: "string"
+- raw_attribute_name: "c_name"
+  data_type: "string"
+- raw_attribute_name: "c_nationkey"
+  data_type: "long"
+- raw_attribute_name: "c_phone"
+  data_type: "string"
+dependencies:
+- source_name: "Samples - tpch.nation"
+- source_name: "Samples - tpch.orders"
+- source_name: "Samples - tpch.supplier"
+channels:
+- output_name: "Reporting - TPCH OBT"
+  output_source_name: "Auto-ML Demo - tpch.customer"
+  output_source_columns:
+  - name: "customer"
+    expression: "c_name"
+    parameter:
+      name: "c_name"
+      type: "raw"
+  - name: "customer_account_balance"
+    expression: "c_acctbal"
+    parameter:
+      name: "c_acctbal"
+      type: "raw"
+  - name: "customer_address"
+    expression: "c_address"
+    parameter:
+      name: "c_address"
+      type: "raw"
+  - name: "customer_comment"
+    expression: "c_comment"
+    parameter:
+      name: "c_comment"
+      type: "raw"
+  - name: "customer_key"
+    expression: "c_custkey"
+    parameter:
+      name: "c_custkey"
+      type: "raw"
+  - name: "customer_market_segment"
+    expression: "c_mktsegment"
+    parameter:
+      name: "c_mktsegment"
+      type: "raw"
+  - name: "customer_nation"
+    expression: "[Samples - tpch.nation].n_name"
+    parameter:
+      name: "n_name"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+  - name: "customer_nation_comment"
+    expression: "[Samples - tpch.nation].n_comment"
+    parameter:
+      name: "n_comment"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+  - name: "customer_nation_key"
+    expression: "[Samples - tpch.nation].n_nationkey"
+    parameter:
+      name: "n_nationkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+  - name: "customer_phone"
+    expression: "c_phone"
+    parameter:
+      name: "c_phone"
+      type: "raw"
+  - name: "customer_region"
+    expression: "[Samples - tpch.region].r_name"
+    parameter:
+      name: "r_name"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "customer_region_comment"
+    expression: "[Samples - tpch.region].r_comment"
+    parameter:
+      name: "r_comment"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "customer_region_key"
+    expression: "[Samples - tpch.region].r_regionkey"
+    parameter:
+      name: "r_regionkey"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"

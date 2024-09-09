@@ -1,0 +1,121 @@
+---
+source_name: "Samples - tpch.supplier"
+source_description: "Auto-created from connection metadata"
+ingestion_parameters:
+  source_query: "select * from tpch.supplier"
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "s_suppkey"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_name: "Databricks Unity Samples"
+schedule_name: "Default"
+hub_view_name: "tpch_supplier"
+process_configuration_name: "Databricks JDBC"
+raw_attributes:
+- raw_attribute_name: "s_acctbal"
+  data_type: "decimal"
+- raw_attribute_name: "s_address"
+  data_type: "string"
+- raw_attribute_name: "s_comment"
+  data_type: "string"
+- raw_attribute_name: "s_name"
+  data_type: "string"
+- raw_attribute_name: "s_nationkey"
+  data_type: "long"
+- raw_attribute_name: "s_phone"
+  data_type: "string"
+- raw_attribute_name: "s_suppkey"
+  data_type: "long"
+  unique_flag: true
+dependencies:
+- source_name: "Samples - tpch.customer"
+- source_name: "Samples - tpch.nation"
+- source_name: "Samples - tpch.partsupp"
+channels:
+- output_name: "Reporting - TPCH OBT"
+  output_source_name: "Auto-ML Demo - tpch.supplier"
+  output_source_columns:
+  - name: "supplier"
+    expression: "[This].s_name"
+    parameter:
+      name: "s_name"
+      type: "raw"
+  - name: "supplier_account_balance"
+    expression: "[This].s_acctbal"
+    parameter:
+      name: "s_acctbal"
+      type: "raw"
+  - name: "supplier_address"
+    expression: "[This].s_address"
+    parameter:
+      name: "s_address"
+      type: "raw"
+  - name: "supplier_comment"
+    expression: "[This].s_comment"
+    parameter:
+      name: "s_comment"
+      type: "raw"
+  - name: "supplier_key"
+    expression: "[This].s_suppkey"
+    parameter:
+      name: "s_suppkey"
+      type: "raw"
+  - name: "supplier_nation"
+    expression: "[Samples - tpch.nation].n_name"
+    parameter:
+      name: "n_name"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_nation_comment"
+    expression: "[Samples - tpch.nation].n_comment"
+    parameter:
+      name: "n_comment"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_nation_key"
+    expression: "[Samples - tpch.nation].n_nationkey"
+    parameter:
+      name: "n_nationkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+  - name: "supplier_phone"
+    expression: "[This].s_phone"
+    parameter:
+      name: "s_phone"
+      type: "raw"
+  - name: "supplier_region"
+    expression: "[Samples - tpch.region].r_name"
+    parameter:
+      name: "r_name"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "supplier_region_comment"
+    expression: "[Samples - tpch.region].r_comment"
+    parameter:
+      name: "r_comment"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "supplier_region_key"
+    expression: "[Samples - tpch.nation].n_regionkey"
+    parameter:
+      name: "n_regionkey"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.nation]-nationkey-[Samples - tpch.supplier]"

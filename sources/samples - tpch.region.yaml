@@ -1,0 +1,27 @@
+---
+source_name: "Samples - tpch.region"
+source_description: "Auto-created from connection metadata"
+ingestion_parameters:
+  source_query: "select * from tpch.region"
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "r_regionkey"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_name: "Databricks Unity Samples"
+schedule_name: "Default"
+hub_view_name: "tpch_region"
+process_configuration_name: "Databricks JDBC"
+raw_attributes:
+- raw_attribute_name: "r_comment"
+  data_type: "string"
+- raw_attribute_name: "r_name"
+  data_type: "string"
+- raw_attribute_name: "r_regionkey"
+  data_type: "long"
+  unique_flag: true
+dependencies:
+- source_name: "Samples - tpch.nation"

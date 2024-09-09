@@ -1,0 +1,153 @@
+---
+source_name: "Samples - tpch.orders"
+source_description: "Auto-created from connection metadata"
+ingestion_parameters:
+  source_query: "select * from tpch.orders"
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "o_orderkey"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_name: "Databricks Unity Samples"
+schedule_name: "Default"
+hub_view_name: "tpch_orders"
+process_configuration_name: "Databricks JDBC"
+raw_attributes:
+- raw_attribute_name: "o_clerk"
+  data_type: "string"
+- raw_attribute_name: "o_comment"
+  data_type: "string"
+- raw_attribute_name: "o_custkey"
+  data_type: "long"
+- raw_attribute_name: "o_orderdate"
+  data_type: "date"
+- raw_attribute_name: "o_orderkey"
+  data_type: "long"
+  unique_flag: true
+- raw_attribute_name: "o_orderpriority"
+  data_type: "string"
+- raw_attribute_name: "o_orderstatus"
+  data_type: "string"
+- raw_attribute_name: "o_shippriority"
+  data_type: "int"
+- raw_attribute_name: "o_totalprice"
+  data_type: "decimal"
+dependencies:
+- source_name: "Samples - tpch.customer"
+- source_name: "Samples - tpch.lineitem"
+channels:
+- output_name: "Reporting - TPCH OBT"
+  output_source_name: "Auto-ML Demo - tpch.orders"
+  output_source_columns:
+  - name: "customer"
+    expression: "[Samples - tpch.customer].c_name"
+    parameter:
+      name: "c_name"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_address"
+    expression: "[Samples - tpch.customer].c_address"
+    parameter:
+      name: "c_address"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_comment"
+    expression: "[Samples - tpch.customer].c_comment"
+    parameter:
+      name: "c_comment"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_market_segment"
+    expression: "[Samples - tpch.customer].c_mktsegment"
+    parameter:
+      name: "c_mktsegment"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_nation_comment"
+    expression: "[Samples - tpch.nation].n_comment"
+    parameter:
+      name: "n_comment"
+      type: "raw"
+      source_name: "Samples - tpch.nation"
+    relations:
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+  - name: "customer_phone"
+    expression: "[Samples - tpch.customer].c_phone"
+    parameter:
+      name: "c_phone"
+      type: "raw"
+      source_name: "Samples - tpch.customer"
+    relations:
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+  - name: "customer_region"
+    expression: "[Samples - tpch.region].r_name"
+    parameter:
+      name: "r_name"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "customer_region_comment"
+    expression: "[Samples - tpch.region].r_comment"
+    parameter:
+      name: "r_comment"
+      type: "raw"
+      source_name: "Samples - tpch.region"
+    relations:
+    - "[Samples - tpch.orders]-custkey-[Samples - tpch.customer]"
+    - "[Samples - tpch.customer]-nationkey-[Samples - tpch.nation]"
+    - "[Samples - tpch.nation]-regionkey-[Samples - tpch.region]"
+  - name: "order_clerk"
+    expression: "[This].o_clerk"
+    parameter:
+      name: "o_clerk"
+      type: "raw"
+  - name: "order_comment"
+    expression: "[This].o_comment"
+    parameter:
+      name: "o_comment"
+      type: "raw"
+  - name: "order_date"
+    expression: "[This].o_orderdate"
+    parameter:
+      name: "o_orderdate"
+      type: "raw"
+  - name: "order_key"
+    expression: "o_orderkey"
+    parameter:
+      name: "o_orderkey"
+      type: "raw"
+  - name: "order_priority"
+    expression: "[This].o_orderpriority"
+    parameter:
+      name: "o_orderpriority"
+      type: "raw"
+  - name: "order_ship_priority"
+    expression: "[This].o_shippriority"
+    parameter:
+      name: "o_shippriority"
+      type: "raw"
+  - name: "order_status"
+    expression: "[This].o_orderstatus"
+    parameter:
+      name: "o_orderstatus"
+      type: "raw"
+  - name: "order_total_price"
+    expression: "[This].o_totalprice"
+    parameter:
+      name: "o_totalprice"
+      type: "raw"

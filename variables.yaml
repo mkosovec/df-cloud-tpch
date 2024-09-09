@@ -1,0 +1,5 @@
+---
+- type: "Output Table Name"
+  name:
+  - "v1"
+  - "v5"

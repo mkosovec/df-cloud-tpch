@@ -1,0 +1,29 @@
+---
+source_name: "Inference - Nation Forecast"
+source_description: "Results from ML Forecast Loopback"
+ingestion_parameters:
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "nation_key"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_type: "custom"
+schedule_name: "Default"
+custom_ingest_cluster_configuration_name: "Custom Notebook - Batch Inference"
+raw_attributes:
+- raw_attribute_name: "nation_key"
+  data_type: "long"
+  unique_flag: true
+dependencies:
+- source_name: "Samples - tpch.nation"
+  active_flag: false
+rules:
+- attribute_name: "revenue_30_cust"
+  name: "revenue_30_cust"
+  datatype: "double"
+  expression: "[This].prediction/100"
+  expression_parsed: "P<1>/100"
+  active_flag: false

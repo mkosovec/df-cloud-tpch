@@ -1,0 +1,50 @@
+---
+source_name: "Samples - tpch.nation"
+source_description: "Auto-created from connection metadata"
+ingestion_parameters:
+  source_query: "select * from tpch.nation"
+  generate_row_id: true
+parsing_parameters:
+  schema_evolution: "Add, Remove, Clone"
+cdc_refresh_parameters:
+  key_columns:
+  - "n_nationkey"
+  exclude_from_cdc: []
+refresh_type: "key"
+connection_name: "Databricks Unity Samples"
+cost_parameters:
+  max_retries: 0
+schedule_name: "Default"
+hub_view_name: "tpch_nation_1"
+process_configuration_name: "Databricks JDBC"
+raw_attributes:
+- raw_attribute_name: "n_comment"
+  data_type: "string"
+- raw_attribute_name: "n_name"
+  data_type: "string"
+- raw_attribute_name: "n_nationkey"
+  data_type: "long"
+  unique_flag: true
+- raw_attribute_name: "n_regionkey"
+  data_type: "long"
+dependencies:
+- source_name: "Inference - Nation Forecast"
+  active_flag: false
+- source_name: "Samples - tpch.customer"
+- source_name: "Samples - tpch.region"
+- source_name: "Samples - tpch.supplier"
+channels:
+- output_name: "Reporting - TPCH OBT"
+  output_source_name: "Auto-ML Demo - tpch.nation"
+  output_source_columns:
+  - name: "customer_nation"
+    expression: "[This].n_name"
+    parameter:
+      name: "n_name"
+      type: "raw"
+  - name: "customer_nation_comment"
+    expression: "[This].n_comment"
+    parameter:
+      name: "n_comment"
+      type: "raw"
+  active_flag: false
